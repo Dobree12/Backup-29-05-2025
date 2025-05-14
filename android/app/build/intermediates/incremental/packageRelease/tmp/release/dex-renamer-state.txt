@@ -1,0 +1,4 @@
+#Sun May 11 19:49:00 EEST 2025
+base.0=C\:\\Users\\dobre\\source\\repos\\Flutter\\TrackIT-main\\android\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

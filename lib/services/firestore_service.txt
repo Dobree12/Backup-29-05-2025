@@ -1,0 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/exercise_model.dart';
+
+class FirestoreService {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Future<List<Exercise>> getExercises() async {
+    final snapshot = await _db.collection('exercises').get();
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Exercise.fromJson(data);
+    }).toList();
+  }
+
+  Future<void> saveExercise(Exercise exercise) async {
+    await _db.collection('exercises').doc(exercise.id).set(exercise.toJson());
+  }
+
+  Future<void> deleteExercise(String id) async {
+    await _db.collection('exercises').doc(id).delete();
+  }
+
+  Future<void> populateInitialExercises(List<Exercise> exercises) async {
+    final batch = _db.batch();
+    for (final exercise in exercises) {
+      final docRef = _db.collection('exercises').doc(exercise.id);
+      batch.set(docRef, exercise.toJson());
+    }
+    await batch.commit();
+  }
+}
