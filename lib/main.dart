@@ -1,16 +1,17 @@
-
-
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
-//import 'models/workout_model.dart';
-import 'providers/workout_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trackit/login_screen.dart';
+import 'package:trackit/verify_email_screen.dart';
+import 'screens/home_screen.dart';
+//import 'package:trackit/register_screen.dart';
+import 'providers/workout_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Inițializare Firebase
+
   runApp(
     MultiProvider(
       providers: [
@@ -21,14 +22,14 @@ void main() async {
   );
 }
 
-
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GymTrack Pro',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         brightness: Brightness.light,
@@ -38,39 +39,25 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
-      debugShowCheckedModeBanner: false,
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+
+          if (snapshot.hasData) {
+            final user = FirebaseAuth.instance.currentUser!;
+            if (user.emailVerified) {
+              return const HomeScreen(); // Ecranul principal al aplicației TrackIT
+            } else {
+              return const VerifyEmailScreen(); // Email neconfirmat
+            }
+          }
+
+          return const LoginScreen(); // Nu e logat
+        },
+      ),
     );
   }
 }
-
-// lib/models/exercise_model.dart
-
-
-// lib/models/workout_set.dart
-
-// lib/models/workout_model.dart
-
-
-// lib/providers/workout_provider.dart
-
-
-// lib/screens/home_screen.dart
-
-
-// lib/screens/exercise_library_screen.dart
-
-
-// lib/screens/exercise_detail_screen.dart
-
-// lib/screens/workout_screen.dart
-
-// lib/services/database_service.dart
-
-// lib/screens/create_workout_screen.dart
-
-
-// lib/screens/workout_detail_screen.dart
-
-
-// lib/screens/stats_screen.dart

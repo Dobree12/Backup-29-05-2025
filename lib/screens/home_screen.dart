@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-//import 'package:trackit/data/exercise_data.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trackit/services/database_service.dart';
 import '../providers/workout_provider.dart';
 import 'workout_screen.dart';
@@ -42,7 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GymTrack Pro'),
+        title: const Text('TrackIT'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'logout') {
+                FirebaseAuth.instance.signOut();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
+            icon: const Icon(Icons.account_circle),
+          ),
+        ],
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -69,4 +85,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }
