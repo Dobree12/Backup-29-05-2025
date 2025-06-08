@@ -17,13 +17,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final List<WorkoutExercise> _selectedExercises = [];
-  
+
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,22 +48,18 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                 return null;
               },
             ),
-            
             const SizedBox(height: 16),
             Text(
               'Exercises',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            
             ..._buildExercisesList(),
-            
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _addExercise,
               icon: const Icon(Icons.add),
               label: const Text('Add Exercise'),
             ),
-            
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saveWorkout,
@@ -77,12 +73,12 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       ),
     );
   }
-  
+
   List<Widget> _buildExercisesList() {
     return _selectedExercises.map((workoutExercise) {
       final exercise = workoutExercise.exercise;
       final exerciseIndex = _selectedExercises.indexOf(workoutExercise);
-      
+
       return Card(
         margin: const EdgeInsets.only(top: 8, bottom: 8),
         child: Padding(
@@ -110,17 +106,31 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 8),
               const Text(
                 'Sets:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              
               ...workoutExercise.sets.asMap().entries.map((entry) {
                 final setIndex = entry.key;
                 final set = entry.value;
+                final repsController = TextEditingController.fromValue(
+                  TextEditingValue(
+                    text: set.reps == 0 ? '' : set.reps.toString(),
+                    selection: TextSelection.collapsed(offset: (set.reps == 0 ? 0 : set.reps.toString().length)),
+                  ),
+                );
+                final weightController = TextEditingController.fromValue(
+                  TextEditingValue(
+                    text: set.weight == 0 ? '' : set.weight.toStringAsFixed(0),
+                    selection: TextSelection.collapsed(offset: (set.weight == 0 ? 0 : set.weight.toStringAsFixed(0).length)),
+                  ),
+                );
+
                 
+
+                
+
                 return Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Row(
@@ -131,14 +141,17 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                       SizedBox(
                         width: 80,
                         child: TextFormField(
-                          initialValue: set.reps.toString(),
+                          controller: repsController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Reps obligatoriu';
+                            }
+                            return null;
+                          },
                           decoration: const InputDecoration(
                             labelText: 'Reps',
                             border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 8,
-                            ),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           ),
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
@@ -158,14 +171,17 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                       SizedBox(
                         width: 80,
                         child: TextFormField(
-                          initialValue: set.weight.toString(),
+                          controller: weightController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Greutate obligatorie';
+                            }
+                            return null;
+                          },
                           decoration: const InputDecoration(
                             labelText: 'Weight',
                             border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 8,
-                            ),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           ),
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
@@ -193,7 +209,6 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                   ),
                 );
               }).toList(),
-              
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: () {
@@ -211,7 +226,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                 icon: const Icon(Icons.add),
                 label: const Text('Add Set'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color.fromARGB(255, 215, 183, 236),
                 ),
               ),
             ],
@@ -220,17 +235,17 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       );
     }).toList();
   }
-  
+
   void _addExercise() async {
     final provider = Provider.of<WorkoutProvider>(context, listen: false);
     final exercises = provider.exercises;
-    
+
     final selectedExercise = await showDialog<Exercise>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Select Exercise'),
-          content: Container(
+          content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
@@ -250,7 +265,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         );
       },
     );
-    
+
     if (selectedExercise != null) {
       setState(() {
         _selectedExercises.add(
@@ -269,7 +284,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       });
     }
   }
-  
+
   void _saveWorkout() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedExercises.isEmpty) {
@@ -280,17 +295,17 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         );
         return;
       }
-      
+
       final workout = Workout(
         id: const Uuid().v4(),
         name: _nameController.text,
         exercises: _selectedExercises,
         date: DateTime.now(),
       );
-      
+
       final provider = Provider.of<WorkoutProvider>(context, listen: false);
       await provider.addWorkout(workout);
-      
+
       Navigator.pop(context);
     }
   }

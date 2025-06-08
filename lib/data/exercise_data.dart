@@ -165,7 +165,7 @@ class ExerciseData {
         name: 'Lateral Raise',
         description: 'Isolation exercise that targets the lateral deltoids.',
         muscleGroup: 'Shoulders',
-        gifUrl: 'https://fitnessprogramer.com/exercise/dumbbell-lateral-raise/?pw=58806',
+        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif',
         instructions: [
           'Stand with feet shoulder-width apart holding a dumbbell in each hand at your sides.',
           'Keep a slight bend in your elbows throughout the movement.',

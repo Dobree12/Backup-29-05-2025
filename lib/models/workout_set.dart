@@ -19,6 +19,21 @@ class WorkoutSet {
       'timestamp': timestamp.toIso8601String(),
     };
   }
+
+  // aici adaugi:
+  WorkoutSet copyWith({
+    String? id,
+    int? reps,
+    double? weight,
+    DateTime? timestamp,
+  }) {
+    return WorkoutSet(
+      id: id ?? this.id,
+      reps: reps ?? this.reps,
+      weight: weight ?? this.weight,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
   
   factory WorkoutSet.fromJson(Map<String, dynamic> json) {
     return WorkoutSet(

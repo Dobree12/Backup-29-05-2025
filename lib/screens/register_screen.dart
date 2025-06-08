@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'verify_email_screen.dart'; // aici il ducem
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,13 +13,13 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final nameController = TextEditingController();
   String? errorMessage;
-  bool emailSent = false;
 
   Future<void> register() async {
     try {
-      final userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
@@ -26,19 +27,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final user = userCredential.user!;
       await user.sendEmailVerification();
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
         'email': user.email,
+        'name': nameController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
+        'profileCompleted': false, // important
       });
 
-      setState(() {
-        emailSent = true;
-        errorMessage = null;
-      });
+      // redirect catre verificare email
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const VerifyEmailScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
-        emailSent = false;
       });
     }
   }
@@ -49,11 +55,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text('Înregistrare')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             if (errorMessage != null)
               Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Nume complet'),
+            ),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -63,16 +72,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               decoration: const InputDecoration(labelText: 'Parolă'),
               obscureText: true,
             ),
-            const SizedBox(height: 12),
-            if (emailSent)
-              const Text(
-                '✅ Email de verificare trimis. După confirmare vei fi redirecționat.',
-                style: TextStyle(color: Colors.green),
-              ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: register,
               child: const Text('Creează cont'),
+              
             ),
           ],
         ),

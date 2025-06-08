@@ -6,6 +6,7 @@ import '../providers/workout_provider.dart';
 import 'workout_screen.dart';
 import 'exercise_library_screen.dart';
 import 'stats_screen.dart';
+import 'account_screen.dart'; // adaugat
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -29,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final dbService = DatabaseService();
 
-      // Populează exercițiile dacă Firestore e gol
       await dbService.checkAndPopulateExercises();
 
       final provider = Provider.of<WorkoutProvider>(context, listen: false);
@@ -37,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
       await provider.loadExercises();
     });
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +48,20 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'logout') {
+              if (value == 'account') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AccountScreen()),
+                );
+              } else if (value == 'logout') {
                 FirebaseAuth.instance.signOut();
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'account',
+                child: Text('Profilul meu'),
+              ),
               const PopupMenuItem<String>(
                 value: 'logout',
                 child: Text('Logout'),
@@ -85,5 +96,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }

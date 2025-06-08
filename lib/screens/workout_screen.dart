@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/workout_provider.dart';
-//import '../models/workout_model.dart';
 import 'create_workout_screen.dart';
 import 'workout_detail_screen.dart';
 
@@ -13,7 +12,7 @@ class WorkoutScreen extends StatelessWidget {
     return Consumer<WorkoutProvider>(
       builder: (context, provider, child) {
         final workouts = provider.workouts;
-        
+
         return Scaffold(
           body: workouts.isEmpty
               ? Center(
@@ -71,7 +70,7 @@ class WorkoutScreen extends StatelessWidget {
       },
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }

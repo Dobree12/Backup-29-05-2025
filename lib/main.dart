@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:trackit/login_screen.dart';
-import 'package:trackit/verify_email_screen.dart';
+import 'package:trackit/screens/login_screen.dart';
+import 'package:trackit/services/database_service.dart';
+import 'package:trackit/screens/verify_email_screen.dart';
 import 'screens/home_screen.dart';
 //import 'package:trackit/register_screen.dart';
 import 'providers/workout_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Inițializare Firebase
+  await Firebase.initializeApp(); // Iniializare Firebase
+
+
+ //daca vrem sa facem reload la exercitiile din baza de date 
+ await DatabaseService().reloadAllExercises(); 
+
+ await DatabaseService().deleteWorkoutsWithoutUserId();
 
   runApp(
     MultiProvider(
@@ -28,7 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'GymTrack Pro',
+      title: 'TrackIT',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
