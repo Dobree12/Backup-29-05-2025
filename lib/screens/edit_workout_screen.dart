@@ -48,6 +48,7 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
         name: _nameController.text.trim(),
         date: widget.workout.date,
         exercises: _exercises,
+        userId: widget.workout.userId,
       );
 
       final provider = Provider.of<WorkoutProvider>(context, listen: false);
@@ -84,14 +85,45 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: Text(ex.exercise.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: NetworkImage(ex.exercise.gifUrl),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ex.exercise.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  ex.exercise.muscleGroup,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => setState(() => _exercises.removeAt(exIndex)),
                           )
                         ],
                       ),
+                      const SizedBox(height: 8),
                       const Text('Sets:', style: TextStyle(fontWeight: FontWeight.bold)),
                       ...ex.sets.asMap().entries.map((sEntry) {
                         final sIndex = sEntry.key;

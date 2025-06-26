@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import '../providers/workout_provider.dart';
 import '../models/workout_model.dart';
 import '../models/exercise_model.dart';
 import '../models/workout_set.dart';
+import '../providers/workout_provider.dart';
 
 class CreateWorkoutScreen extends StatefulWidget {
-  const CreateWorkoutScreen({Key? key}) : super(key: key);
+  final String? predefinedUserId;
+
+  const CreateWorkoutScreen({super.key, this.predefinedUserId});
 
   @override
-  _CreateWorkoutScreenState createState() => _CreateWorkoutScreenState();
+  State<CreateWorkoutScreen> createState() => _CreateWorkoutScreenState();
 }
 
 class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
@@ -26,6 +28,9 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Workout'),
@@ -33,13 +38,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Workout Name',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -48,14 +53,16 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                 return null;
               },
             ),
+            const SizedBox(height: 24),
+            Text('Exercises', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            ..._selectedExercises
+                .asMap()
+                .entries
+                .map((entry) => _buildExerciseCard(context, isDark, entry.value, entry.key))
+                .toList(),
             const SizedBox(height: 16),
-            Text(
-              'Exercises',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            ..._buildExercisesList(),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
+            FilledButton.icon(
               onPressed: _addExercise,
               icon: const Icon(Icons.add),
               label: const Text('Add Exercise'),
@@ -63,10 +70,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saveWorkout,
-              child: const Text('Save Workout'),
               style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
+              child: const Text('Save Workout'),
             ),
           ],
         ),
@@ -74,210 +84,117 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
     );
   }
 
-  List<Widget> _buildExercisesList() {
-    return _selectedExercises.map((workoutExercise) {
-      final exercise = workoutExercise.exercise;
-      final exerciseIndex = _selectedExercises.indexOf(workoutExercise);
+  Widget _buildExerciseCard(BuildContext context, bool isDark, WorkoutExercise we, int index) {
+    final exercise = we.exercise;
 
-      return Card(
-        margin: const EdgeInsets.only(top: 8, bottom: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      exercise.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+    return Card(
+      color: isDark ? Colors.grey[900] : Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    exercise.name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => setState(() => _selectedExercises.removeAt(index)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text('Sets:', style: TextStyle(fontWeight: FontWeight.bold)),
+            ...we.sets.asMap().entries.map((entry) {
+              final i = entry.key;
+              final s = entry.value;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(child: Text('Set ${i + 1}')),
+                    SizedBox(
+                      width: 80,
+                      child: TextFormField(
+                        initialValue: s.reps > 0 ? s.reps.toString() : '',
+                        decoration: const InputDecoration(labelText: 'Reps'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) => setState(() => we.sets[i] = s.copyWith(reps: int.tryParse(value) ?? 0)),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      setState(() {
-                        _selectedExercises.removeAt(exerciseIndex);
-                      });
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Sets:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              ...workoutExercise.sets.asMap().entries.map((entry) {
-                final setIndex = entry.key;
-                final set = entry.value;
-                final repsController = TextEditingController.fromValue(
-                  TextEditingValue(
-                    text: set.reps == 0 ? '' : set.reps.toString(),
-                    selection: TextSelection.collapsed(offset: (set.reps == 0 ? 0 : set.reps.toString().length)),
-                  ),
-                );
-                final weightController = TextEditingController.fromValue(
-                  TextEditingValue(
-                    text: set.weight == 0 ? '' : set.weight.toStringAsFixed(0),
-                    selection: TextSelection.collapsed(offset: (set.weight == 0 ? 0 : set.weight.toStringAsFixed(0).length)),
-                  ),
-                );
-
-                
-
-                
-
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text('Set ${setIndex + 1}'),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 80,
+                      child: TextFormField(
+                        initialValue: s.weight > 0 ? s.weight.toString() : '',
+                        decoration: const InputDecoration(labelText: 'Weight'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) => setState(() => we.sets[i] = s.copyWith(weight: double.tryParse(value) ?? 0)),
                       ),
-                      SizedBox(
-                        width: 80,
-                        child: TextFormField(
-                          controller: repsController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Reps obligatoriu';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            labelText: 'Reps',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            setState(() {
-                              final newSet = WorkoutSet(
-                                id: set.id,
-                                reps: int.tryParse(value) ?? 0,
-                                weight: set.weight,
-                                timestamp: set.timestamp,
-                              );
-                              workoutExercise.sets[setIndex] = newSet;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 80,
-                        child: TextFormField(
-                          controller: weightController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Greutate obligatorie';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            labelText: 'Weight',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            setState(() {
-                              final newSet = WorkoutSet(
-                                id: set.id,
-                                reps: set.reps,
-                                weight: double.tryParse(value) ?? 0,
-                                timestamp: set.timestamp,
-                              );
-                              workoutExercise.sets[setIndex] = newSet;
-                            });
-                          },
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            workoutExercise.sets.removeAt(setIndex);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    workoutExercise.sets.add(
-                      WorkoutSet(
-                        id: const Uuid().v4(),
-                        reps: 0,
-                        weight: 0,
-                        timestamp: DateTime.now(),
-                      ),
-                    );
-                  });
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add Set'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 215, 183, 236),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => we.sets.removeAt(i)),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
+              );
+            }),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => setState(() => we.sets.add(
+                WorkoutSet(id: const Uuid().v4(), reps: 0, weight: 0, timestamp: DateTime.now()),
+              )),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Set'),
+            )
+          ],
         ),
-      );
-    }).toList();
+      ),
+    );
   }
 
   void _addExercise() async {
     final provider = Provider.of<WorkoutProvider>(context, listen: false);
     final exercises = provider.exercises;
 
-    final selectedExercise = await showDialog<Exercise>(
+    final selected = await showDialog<Exercise>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Exercise'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                return ListTile(
-                  title: Text(exercise.name),
-                  subtitle: Text(exercise.muscleGroup),
-                  onTap: () {
-                    Navigator.of(context).pop(exercise);
-                  },
-                );
-              },
+      builder: (_) => AlertDialog(
+        title: const Text('Select Exercise'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: exercises.length,
+            itemBuilder: (_, i) => ListTile(
+              leading: exercises[i].gifUrl != null && exercises[i].gifUrl!.isNotEmpty
+                  ? Image.network(exercises[i].gifUrl!, width: 48, height: 48, fit: BoxFit.cover)
+                  : const Icon(Icons.fitness_center),
+              title: Text(exercises[i].name),
+              subtitle: Text(exercises[i].muscleGroup),
+              onTap: () => Navigator.of(context).pop(exercises[i]),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
 
-    if (selectedExercise != null) {
+    if (selected != null) {
       setState(() {
         _selectedExercises.add(
           WorkoutExercise(
-            exercise: selectedExercise,
+            exercise: selected,
             sets: [
-              WorkoutSet(
-                id: const Uuid().v4(),
-                reps: 0,
-                weight: 0,
-                timestamp: DateTime.now(),
-              ),
+              WorkoutSet(id: const Uuid().v4(), reps: 0, weight: 0, timestamp: DateTime.now()),
             ],
           ),
         );
@@ -286,27 +203,30 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
   }
 
   void _saveWorkout() async {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedExercises.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please add at least one exercise'),
-          ),
-        );
-        return;
-      }
-
-      final workout = Workout(
-        id: const Uuid().v4(),
-        name: _nameController.text,
-        exercises: _selectedExercises,
-        date: DateTime.now(),
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedExercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one exercise')),
       );
-
-      final provider = Provider.of<WorkoutProvider>(context, listen: false);
-      await provider.addWorkout(workout);
-
-      Navigator.pop(context);
+      return;
     }
-  }
+
+   try {
+  final workout = Workout(
+    id: const Uuid().v4(),
+    name: _nameController.text.trim(),
+    exercises: _selectedExercises,
+    date: DateTime.now(),
+    userId: widget.predefinedUserId ?? 'fallback_user_id', // temporar pt test
+  );
+
+  final provider = Provider.of<WorkoutProvider>(context, listen: false);
+  await provider.addWorkout(workout, userId: workout.userId);
+  Navigator.pop(context);
+} catch (e) {
+  print('Eroare la salvare: $e');
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Eroare la salvare: $e')),
+  );
 }
+}}

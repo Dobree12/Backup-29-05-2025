@@ -47,31 +47,33 @@ class DatabaseService {
   // WORKOUTS
   // ------------------------------
 
-  Future<void> saveWorkout(Workout workout) async {
-    final workoutDoc = _firestore.collection('workouts').doc(workout.id);
-    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+Future<String> saveWorkout(Workout workout, {String? userId}) async {
+  final currentUserId = userId ?? FirebaseAuth.instance.currentUser?.uid;
+  if (currentUserId == null) throw Exception('User not logged in');
 
-    // Salveaza metadatele antrenamentului
-    await workoutDoc.set({
-      'id': workout.id,
-      'name': workout.name,
-      'date': workout.date.toIso8601String(),
-      'userId': currentUserId, // nou: pentru filtrare per utilizator
+  // Creeaza documentul principal si obtine id-ul generat
+  final docRef = await _firestore.collection('workouts').add({
+    'name': workout.name,
+    'date': workout.date.toIso8601String(),
+    'userId': currentUserId,
+  });
+
+  // Salveaza fiecare exercitiu ca subdocument
+  for (final we in workout.exercises) {
+    final weDoc = docRef.collection('exercises').doc(we.id);
+
+    await weDoc.set({
+      'exercise': we.exercise.toMap(),
     });
 
-    // Salveaza fiecare exercitiu ca subdocument + seturile
-    for (final we in workout.exercises) {
-      final weDoc = workoutDoc.collection('exercises').doc(we.id);
-
-      await weDoc.set({
-        'exercise': we.exercise.toMap(),
-      });
-
-      for (final set in we.sets) {
-        await weDoc.collection('sets').doc(set.id).set(set.toJson());
-      }
+    for (final set in we.sets) {
+      await weDoc.collection('sets').doc(set.id).set(set.toJson());
     }
   }
+
+  return docRef.id;
+}
+
 
   Future<List<Workout>> getWorkouts() async {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
@@ -125,6 +127,7 @@ class DatabaseService {
         name: workoutData['name'],
         date: date,
         exercises: workoutExercises,
+        userId: workoutData['userId'],
       ));
     }
 

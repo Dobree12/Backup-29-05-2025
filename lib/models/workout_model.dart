@@ -7,12 +7,14 @@ class Workout {
   final String name;
   final List<WorkoutExercise> exercises;
   final DateTime date;
+  final String userId;
 
   Workout({
     required this.id,
     required this.name,
     required this.exercises,
     required this.date,
+    required this.userId,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class Workout {
       'id': id,
       'name': name,
       'date': date.toIso8601String(),
+      'userId': userId, // adaugam userId in map
     };
   }
 
@@ -28,10 +31,12 @@ class Workout {
       id: map['id'],
       name: map['name'],
       date: DateTime.parse(map['date']),
-      exercises: [], // populăm separat
+      userId: map['userId'], // citim userId din map
+      exercises: [], // se populeaza separat
     );
   }
 }
+
 
 class WorkoutExercise {
   final String id;
