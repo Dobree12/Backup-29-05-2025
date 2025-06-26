@@ -5,7 +5,7 @@
 ## Candidat: Paloti Dobre
 
 
-TrackIT este o aplicație mobilă scrisă în Flutter, destinată monitorizării antrenamentelor de fitness. Utilizatorii pot crea, edita și urmări exerciții și workout-uri, iar antrenorii pot gestiona clienți.
+Pentru a vedea ultima versiune si cea prezentata in documentatie, trebuie aleas branch-ul "update", nu main. 
 
 ---
 
@@ -24,7 +24,7 @@ TrackIT este o aplicație mobilă scrisă în Flutter, destinată monitorizării
 ### 1. Clonează proiectul
 
 ```bash
-git clone https://github.com/utilizator/trackit.git
+git clone https://github.com/Dobree12/TrackIT.git
 cd trackit
 ```
 
