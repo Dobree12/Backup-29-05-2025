@@ -4,6 +4,7 @@
 ## Conf.dr.ing. Iosif Szeidert-Șubert
 ## Candidat: Paloti Dobre
 
+### link repository: https://github.com/Dobree12/TrackIT/tree/update
 
 TrackIT este o aplicație mobilă scrisă în Flutter, destinată monitorizării antrenamentelor de fitness. Utilizatorii pot crea, edita și urmări exerciții și workout-uri, iar antrenorii pot gestiona clienți.
 
