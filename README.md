@@ -5,7 +5,9 @@
 ## Candidat: Paloti Dobre
 
 
-Pentru a vedea ultima versiune si cea prezentata in documentatie, trebuie aleas branch-ul "update", nu main. 
+
+Pentru a vedea ultima versiune si cea prezentata in documentatie, trebuie aleas branch-ul "update", nu main.
+### link repository: https://github.com/Dobree12/TrackIT/tree/update
 
 ---
 
@@ -24,7 +26,7 @@ Pentru a vedea ultima versiune si cea prezentata in documentatie, trebuie aleas 
 ### 1. Clonează proiectul
 
 ```bash
-git clone https://github.com/Dobree12/TrackIT.git
+git clone https://github.com/utilizator/trackit.git
 cd trackit
 ```
 
